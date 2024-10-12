@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from streamlit_flow import streamlit_flow
@@ -7,7 +8,25 @@ from streamlit_flow.state import StreamlitFlowState
 st.title("🎈 My new app")
 st.write(
     "Let's start building a userjourney flow"
-)
+# HTML and JavaScript for capturing the canvas content
+capture_script = """
+    <script>
+    function captureAndDownload() {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'flow_diagram.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert('Canvas not found!');
+        }
+    }
+    </script>
+"""
+
 # File uploader
 uploaded_file = st.file_uploader("Upload your Excel file", type=['xls', 'xlsx'])
 
@@ -16,7 +35,7 @@ if uploaded_file:
     xlsx = pd.ExcelFile(uploaded_file)
     nodes_df = pd.read_excel(xlsx, 'Nodes')
     edges_df = pd.read_excel(xlsx, 'Edges')
-
+    
     # Convert Timestamp columns to string if they exist
     for column in nodes_df.columns:
         if nodes_df[column].dtype == 'datetime64[ns]':
@@ -62,5 +81,10 @@ if uploaded_file:
         show_controls=True,
         hide_watermark=True
     )
+    
+    # Display the download button
+    st.markdown(capture_script, unsafe_allow_html=True)
+    if st.button('Download Flow Diagram as Image'):
+        st.markdown("<script>captureAndDownload()</script>", unsafe_allow_html=True)
 else:
     st.warning("Please upload an Excel file to proceed.")
